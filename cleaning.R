@@ -1,0 +1,42 @@
+library(rtweet)
+library(dplyr)
+library(tidyr)
+library(tidytext)
+library(textdata)
+library(purrr)
+library(tm)
+library(twitteR)
+
+#Cleaning
+vaccineTweets <- vac_tweets$text
+corpus_tweets <- Corpus(VectorSource(vaccineTweets))
+
+removeURL <- function(removeURL) gsub("http[^[:space:]]*", "", removeURL)
+tweet_clean <- tm_map(corpus_tweets, removeURL)
+removeNL <- function(removeNL) gsub("\n", " ", removeNL)
+tweet_clean <- tm_map(tweet_clean, removeNL)
+replacecomma <- function(replacecomma) gsub(",", "", replacecomma)
+tweet_clean <- tm_map(tweet_clean, replacecomma)
+removeRT <- function(removeRT) gsub("RT ", "", removeRT)
+tweet_clean <- tm_map(tweet_clean, removeRT)
+removecolon <- function(removecolon) gsub(":", "", removecolon)
+tweet_clean <- tm_map(tweet_clean, removecolon)
+removesemicolon <- function(removesemicolon) gsub(";", " ", removesemicolon)
+tweet_clean <- tm_map(tweet_clean, removesemicolon)
+removeamp <- function(y) gsub("&amp;", "", y)
+tweet_clean <- tm_map(tweet_clean, removeamp)
+removeUN <- function(z) gsub("@\\w+", "", z)
+tweet_clean <- tm_map(tweet_clean, removeUN)
+remove.all <- function(xy) gsub("[^[:alpha:][:space:]]*", "", xy)
+tweet_clean <- tm_map(tweet_clean,remove.all)
+
+tweet_clean <- tm_map(tweet_clean, cleanTweets)
+tweet_clean <- tm_map(tweet_clean, removePunctuation)
+tweet_clean <- tm_map(tweet_clean, tolower)
+myStopwords = readLines("stopwords.txt")
+tweet_clean <- tm_map(tweet_clean,removeWords,myStopwords)
+
+dataframe<-data.frame(text=unlist(sapply(tweet_clean, `[`)), stringsAsFactors=F)
+View(dataframe)
+
+write.csv(dataframe,file = 'tweetclean.csv')
